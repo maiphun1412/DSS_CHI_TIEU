@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ thống dự đoán vượt ngân sách</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                200: "#bfdbfe",
+                300: "#93c5fd",
+                400: "#60a5fa",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                800: "#1e40af",
+                900: "#1e3a8a"
+              }
+            }
+          }
+        }
+      };
+    </script>
+  </head>
+
+  <body class="bg-gradient-to-br from-blue-50 via-white to-sky-100 text-slate-800 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <nav class="mb-6 bg-white/90 backdrop-blur rounded-2xl px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-md border border-blue-100">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 bg-gradient-to-br from-primary-600 to-sky-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow">
+            DB
+          </div>
+          <div>
+            <div class="text-lg font-bold text-primary-800">Hệ thống dự đoán vượt ngân sách</div>
+            <div class="text-sm text-slate-500">DSS kết hợp AI và AHP</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="showStart()" class="text-sm rounded-xl px-4 py-2 border border-blue-200 bg-white hover:bg-blue-50 text-primary-700 transition">
+            Trang chủ
+          </button>
+          <button type="button" onclick="showStep(1)" class="text-sm rounded-xl px-4 py-2 border border-blue-200 bg-white hover:bg-blue-50 text-primary-700 transition">
+            Giới thiệu
+          </button>
+          <button type="button" onclick="showHistory()" class="text-sm rounded-xl px-4 py-2 border border-blue-200 bg-white hover:bg-blue-50 text-primary-700 transition">
+            Lịch sử
+          </button>
+        </div>
+      </nav>
+
+      <!-- START -->
+      <section id="startScreen" class="screen">
+        <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8 md:p-10">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div class="space-y-6">
+              <div>
+                <div class="inline-flex rounded-full bg-blue-50 text-primary-700 border border-blue-100 px-4 py-2 text-sm font-medium">
+                  Hệ hỗ trợ ra quyết định chi tiêu cá nhân
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold leading-tight mt-4 text-primary-900">
+                  Dự đoán nguy cơ vượt ngân sách
+                  <br />
+                  và gợi ý cắt giảm chi tiêu
+                </h1>
+                <p class="mt-4 text-slate-600 max-w-2xl leading-7">
+                  Hệ thống cho phép tải dữ liệu từ file CSV hoặc nhập tay, sau đó phân tích tổng chi,
+                  dự đoán nguy cơ vượt ngân sách bằng AI và đề xuất hướng điều chỉnh bằng AHP.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5 shadow-sm">
+                  <p class="text-sm text-slate-500">Phân tích</p>
+                  <p class="font-semibold mt-2 text-primary-800">Dữ liệu chi tiêu</p>
+                </div>
+                <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-sky-50 p-5 shadow-sm">
+                  <p class="text-sm text-slate-500">AI</p>
+                  <p class="font-semibold mt-2 text-primary-800">Nguy cơ vượt ngân sách</p>
+                </div>
+                <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-cyan-50 p-5 shadow-sm">
+                  <p class="text-sm text-slate-500">AHP</p>
+                  <p class="font-semibold mt-2 text-primary-800">Ưu tiên cắt giảm</p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                <button
+                  id="startBtn"
+                  type="button"
+                  class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-6 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                  Bắt đầu
+                </button>
+
+                <button
+                  type="button"
+                  onclick="showHistory()"
+                  class="rounded-xl border border-blue-200 bg-white px-6 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+                  Xem lịch sử
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-100 rounded-3xl p-6 md:p-8 shadow-sm">
+              <h2 class="text-xl font-bold text-primary-800">Giới thiệu ngắn</h2>
+              <div class="mt-5 space-y-4 text-slate-600">
+                <div class="rounded-2xl bg-white border border-blue-100 p-4 shadow-sm">
+                  <p class="font-semibold text-primary-700">Bước 1</p>
+                  <p class="mt-1">Nhập dữ liệu chi tiêu bằng file CSV hoặc nhập thủ công.</p>
+                </div>
+                <div class="rounded-2xl bg-white border border-blue-100 p-4 shadow-sm">
+                  <p class="font-semibold text-primary-700">Bước 2</p>
+                  <p class="mt-1">Thiết lập ngân sách và phân tích mức sử dụng hiện tại.</p>
+                </div>
+                <div class="rounded-2xl bg-white border border-blue-100 p-4 shadow-sm">
+                  <p class="font-semibold text-primary-700">Bước 3</p>
+                  <p class="mt-1">AI dự đoán nguy cơ vượt ngân sách, AHP gợi ý ưu tiên cắt giảm.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 1 -->
+      <section id="step1" class="screen hidden">
+        <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8">
+          <div class="max-w-4xl">
+            <p class="text-sm font-semibold text-primary-600">STEP 1</p>
+            <h2 class="text-3xl font-bold mt-2 text-primary-900">Giới thiệu hệ thống</h2>
+            <div class="mt-6 space-y-3 text-slate-600 leading-7">
+              <p>Hệ thống hỗ trợ người dùng phân tích dữ liệu chi tiêu cá nhân theo ngân sách đã đặt ra.</p>
+              <p>Dữ liệu có thể được lấy từ file CSV hoặc nhập thủ công để bổ sung thêm các khoản chi phát sinh.</p>
+              <p>Sau khi xử lý, hệ thống dùng AI để ước lượng rủi ro vượt ngân sách và dùng AHP để đề xuất nhóm chi nên ưu tiên điều chỉnh.</p>
+            </div>
+
+            <div class="mt-8 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-sky-50 p-5">
+              <p class="font-semibold mb-3 text-primary-800">Luồng xử lý chính</p>
+              <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+                <li>Người dùng nhập dữ liệu chi tiêu</li>
+                <li>Người dùng nhập ngân sách</li>
+                <li>Hệ thống tính tổng chi, phần còn lại và tỷ lệ sử dụng ngân sách</li>
+                <li>AI dự đoán nguy cơ vượt ngân sách</li>
+                <li>AHP xác định mức ưu tiên cắt giảm giữa các nhóm chi tiêu</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+            <button type="button" onclick="showStart()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+              Back
+            </button>
+            <div class="text-sm text-slate-500">Đang ở bước 1</div>
+            <div class="flex gap-3">
+              <button type="button" onclick="showHistory()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+                History
+              </button>
+              <button type="button" onclick="showStep(2)" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section id="step2" class="screen hidden">
+        <div class="space-y-6">
+          <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8">
+            <div>
+              <p class="text-sm font-semibold text-primary-600">STEP 2</p>
+              <h2 class="text-3xl font-bold mt-2 text-primary-900">Nhập dữ liệu và thiết lập ngân sách</h2>
+              <p class="text-slate-500 mt-2 leading-7">
+                Tải file CSV để phân tích nhanh hoặc nhập tay để bổ sung. Hệ thống sẽ tổng hợp toàn bộ dữ liệu đang có để tính toán.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div class="xl:col-span-2">
+              <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6 space-y-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                  <div>
+                    <h3 class="text-xl font-bold text-primary-900">Dữ liệu chi tiêu</h3>
+                    <p class="text-sm text-slate-500 mt-1">Có thể dùng file CSV hoặc nhập tay để bổ sung thêm dữ liệu.</p>
+                  </div>
+
+                  <span id="dataSourceBadge" class="inline-flex rounded-full bg-blue-50 text-primary-700 border border-blue-100 px-4 py-2 text-xs font-semibold">
+                    Chưa có dữ liệu
+                  </span>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                  <button type="button" id="csvTabBtn" onclick="showDataInputTab('csv')" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-4 py-2 text-white text-sm font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                    Tải file CSV
+                  </button>
+
+                  <button type="button" id="manualTabBtn" onclick="showDataInputTab('manual')" class="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-blue-50 transition">
+                    Nhập tay bổ sung
+                  </button>
+                </div>
+
+                <div id="csvInputPanel" class="space-y-4">
+                  <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+                    <h4 class="text-lg font-semibold text-primary-800">Tải file CSV</h4>
+                    <p class="text-sm text-slate-500 mt-1">
+                      File cần có tối thiểu các cột: <span class="font-medium">date, category, amount</span>
+                    </p>
+
+                    <input id="csvFileInput" type="file" accept=".csv" class="mt-4 block w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm" />
+
+                    <div class="flex flex-wrap gap-3 mt-4">
+                      <button type="button" onclick="handleCSVUpload()" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                        Tải file CSV
+                      </button>
+
+                      <button type="button" onclick="clearCSVData()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+                        Xóa file CSV
+                      </button>
+                    </div>
+
+                    <div id="csvStatus" class="hidden rounded-xl px-4 py-3 text-sm mt-4"></div>
+
+                    <div class="mt-4 rounded-xl border border-blue-100 bg-white px-4 py-3 text-sm text-slate-600">
+                      <p class="font-semibold mb-1 text-primary-700">Ví dụ dữ liệu CSV</p>
+                      <p>date,category,amount</p>
+                      <p>2022-07-06 05:57:10 +0000,Restuarant,5.5</p>
+                      <p>2022-07-06 06:00:53 +0000,Transport,5.0</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="manualInputPanel" class="space-y-4 hidden">
+                  <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+                    <h4 class="text-lg font-semibold text-primary-800">Nhập khoản chi tiêu thủ công</h4>
+                    <p class="text-sm text-slate-500 mt-1">Dùng để thêm các khoản chi ngoài file CSV.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <label class="block text-sm font-semibold mb-2 text-primary-700">Ngày</label>
+                        <input id="manualDate" type="date" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                      </div>
+
+                      <div>
+                        <label class="block text-sm font-semibold mb-2 text-primary-700">Danh mục</label>
+                        <select id="manualCategory" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                          <option>Nhà ở</option>
+                          <option>Ăn uống</option>
+                          <option>Di chuyển</option>
+                          <option>Mua sắm</option>
+                          <option>Giải trí</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="mt-4">
+                      <label class="block text-sm font-semibold mb-2 text-primary-700">Số tiền</label>
+                      <input id="manualAmount" type="number" placeholder="Ví dụ: 1200000" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    </div>
+
+                    <div class="mt-4">
+                      <label class="block text-sm font-semibold mb-2 text-primary-700">Ghi chú</label>
+                      <input id="manualNote" type="text" placeholder="Ví dụ: Tiền ăn tuần 1" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    </div>
+
+                    <button type="button" onclick="addManualExpense()" class="mt-4 rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                      + Thêm khoản chi
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex items-center justify-between gap-3 mb-3">
+                    <h4 class="text-lg font-bold text-primary-900">Bảng dữ liệu đang phân tích</h4>
+                    <span class="text-sm text-slate-500">Có thể xóa từng dòng</span>
+                  </div>
+
+                  <div class="border border-blue-100 rounded-2xl overflow-hidden shadow-sm">
+                    <div class="overflow-auto max-h-[520px]">
+                      <table class="min-w-full text-sm">
+                        <thead class="bg-blue-50 text-primary-700 sticky top-0 z-10">
+                          <tr>
+                            <th class="px-4 py-3 text-left font-semibold">Ngày</th>
+                            <th class="px-4 py-3 text-left font-semibold">Danh mục</th>
+                            <th class="px-4 py-3 text-left font-semibold">Số tiền</th>
+                            <th class="px-4 py-3 text-left font-semibold">Ghi chú</th>
+                            <th class="px-4 py-3 text-center font-semibold">Nguồn</th>
+                            <th class="px-4 py-3 text-center font-semibold">Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody id="expenseTableBody" class="divide-y divide-blue-100 bg-white">
+                          <tr id="emptyRow">
+                            <td colspan="6" class="px-4 py-6 text-center text-slate-500">
+                              Chưa có dữ liệu chi tiêu. Hãy tải CSV hoặc nhập tay.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-100 rounded-3xl p-6 shadow-sm">
+                  <h4 class="text-lg font-bold mb-4 text-primary-800">Biểu đồ chi tiêu theo danh mục</h4>
+                  <div class="h-[320px]">
+                    <canvas id="expenseCategoryChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6">
+                <label class="block text-sm font-semibold mb-2 text-primary-700">Nhập ngân sách</label>
+                <input id="budgetInput" type="number" placeholder="Ví dụ: 15000000" oninput="updateAnalysis()" class="w-full rounded-xl border border-blue-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+                <div class="mt-5">
+                  <h3 class="text-lg font-bold mb-3 text-primary-900">Kết quả phân tích nhanh</h3>
+                  <div class="overflow-hidden border border-blue-100 rounded-2xl shadow-sm">
+                    <table class="min-w-full text-sm">
+                      <thead class="bg-blue-50 text-primary-700">
+                        <tr>
+                          <th class="px-4 py-3 text-left font-semibold">Chỉ số</th>
+                          <th class="px-4 py-3 text-left font-semibold">Giá trị</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-blue-100 bg-white">
+                        <tr>
+                          <td class="px-4 py-3">Tổng chi</td>
+                          <td id="totalExpenseValue" class="px-4 py-3 font-medium text-primary-800">0</td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-3">Còn lại</td>
+                          <td id="remainingValue" class="px-4 py-3 font-medium text-primary-800">0</td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-3">% sử dụng ngân sách</td>
+                          <td id="usedBudgetPercent" class="px-4 py-3 font-medium text-primary-800">0%</td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-3">Số khoản đã nhập</td>
+                          <td id="expenseCountValue" class="px-4 py-3 font-medium text-primary-800">0</td>
+                        </tr>
+                        <tr>
+                          <td class="px-4 py-3">Nguồn dữ liệu ưu tiên</td>
+                          <td id="preferredSourceValue" class="px-4 py-3 font-medium text-primary-800">Nhập tay</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6">
+                <h4 class="text-lg font-bold mb-4 text-primary-800">Biểu đồ nguy cơ vượt ngân sách</h4>
+                <div class="h-[280px]">
+                  <canvas id="riskChart"></canvas>
+                </div>
+              </div>
+
+              <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6">
+                <h4 class="text-lg font-bold mb-4 text-primary-800">Dự đoán bằng AI</h4>
+                <button id="startAiBtn" type="button" onclick="startAIPrediction()" class="w-full rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                  Bắt đầu AI dự đoán
+                </button>
+                <p class="text-sm text-slate-500 mt-3">
+                  AI sẽ dựa trên tổng chi, ngân sách và số khoản chi đã nhập để đánh giá mức nguy cơ.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6 space-y-5">
+            <div class="flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h4 class="text-lg font-bold text-primary-900">Mô-đun AI dự đoán nguy cơ</h4>
+                <p class="text-sm text-slate-500 mt-1">
+                  AI sử dụng các đặc trưng từ dữ liệu chi tiêu để dự đoán nguy cơ vượt ngân sách.
+                </p>
+              </div>
+
+              <span id="aiStatusBadge" class="inline-flex rounded-full bg-blue-50 text-primary-700 border border-blue-100 px-4 py-2 text-xs font-semibold">
+                Chưa chạy AI
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-4">
+                <p class="text-sm text-slate-500">Đầu vào AI: Tổng chi</p>
+                <p id="aiInputTotal" class="mt-2 text-xl font-bold text-primary-800">0</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-4">
+                <p class="text-sm text-slate-500">Đầu vào AI: Ngân sách</p>
+                <p id="aiInputBudget" class="mt-2 text-xl font-bold text-primary-800">0</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-4">
+                <p class="text-sm text-slate-500">Đầu vào AI: Số khoản chi</p>
+                <p id="aiInputCount" class="mt-2 text-xl font-bold text-primary-800">0</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-4">
+                <p class="text-sm text-slate-500">Đầu vào AI: Tỷ lệ chi/ngân sách</p>
+                <p id="aiInputRatio" class="mt-2 text-xl font-bold text-primary-800">0.00</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+                <h5 class="font-bold mb-4 text-primary-800">Xác suất rủi ro AI</h5>
+                <div class="h-[260px]">
+                  <canvas id="aiProbabilityChart"></canvas>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+                <h5 class="font-bold mb-4 text-primary-800">So sánh ngân sách và tổng chi</h5>
+                <div class="h-[260px]">
+                  <canvas id="budgetCompareChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+              <h5 class="font-bold mb-3 text-primary-800">Giải thích AI</h5>
+              <div class="space-y-3 text-sm text-slate-600">
+                <p><span class="font-semibold text-primary-800">Mô hình AI:</span> Phân loại nguy cơ vượt ngân sách</p>
+                <p><span class="font-semibold text-primary-800">Đầu vào:</span> Tổng chi, ngân sách, số khoản chi, tỷ lệ chi trên ngân sách</p>
+                <p><span class="font-semibold text-primary-800">Đầu ra:</span> Mức nguy cơ, điểm rủi ro, dự đoán tổng chi cuối kỳ, số tiền vượt dự kiến</p>
+                <p id="aiExplainLine"><span class="font-semibold text-primary-800">Kết luận:</span> Chưa có dữ liệu để giải thích.</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="aiPredictionResult" class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6 space-y-6">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div>
+                <p class="text-sm font-semibold text-primary-600">AI PREDICTION</p>
+                <h3 class="text-2xl font-bold mt-2 text-primary-900">Kết quả dự đoán nguy cơ vượt ngân sách</h3>
+                <p class="text-sm text-slate-500 mt-1">
+                  Kết quả này được lấy từ mô hình AI hoặc chế độ dự phòng khi model chưa sẵn sàng.
+                </p>
+              </div>
+
+              <div id="riskBadge" class="inline-flex rounded-full bg-blue-50 text-primary-700 border border-blue-100 px-4 py-2 text-sm font-semibold">
+                Chưa đánh giá
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Mức nguy cơ</p>
+                <p id="riskLevelText" class="mt-2 text-2xl font-bold text-primary-800">Chưa đánh giá</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Điểm rủi ro</p>
+                <p id="riskScoreText" class="mt-2 text-2xl font-bold text-primary-800">0.00</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Tỷ lệ chi / ngân sách</p>
+                <p id="ratioText" class="mt-2 text-2xl font-bold text-primary-800">0.00</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Dự đoán tổng chi cuối kỳ</p>
+                <p id="forecastExpenseText" class="mt-2 text-2xl font-bold text-primary-800">0</p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Vượt ngân sách dự kiến</p>
+                <p id="expectedOverText" class="mt-2 text-2xl font-bold text-primary-800">0</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Thông điệp hệ thống</p>
+                <p id="aiMessageText" class="mt-2 font-medium text-primary-800">
+                  Chưa có kết quả dự đoán.
+                </p>
+              </div>
+
+              <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-5">
+                <p class="text-sm text-slate-500">Khuyến nghị</p>
+                <p id="aiAdviceText" class="mt-2 font-medium text-primary-800">
+                  Hãy nhập dữ liệu chi tiêu và ngân sách, sau đó bắt đầu dự đoán.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-6">
+            <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+              <button type="button" onclick="showStep(1)" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+                Back
+              </button>
+              <div class="text-sm text-slate-500">Đang ở bước 2</div>
+              <div class="flex gap-3">
+                <button type="button" onclick="showHistory()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+                  History
+                </button>
+                <button type="button" onclick="showStep(3)" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+            <!-- STEP 3 -->
+      <section id="step3" class="screen hidden">
+        <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8 space-y-8">
+          <div>
+            <p class="text-sm font-semibold text-primary-600">STEP 3</p>
+            <h2 class="text-3xl font-bold mt-2 text-primary-900">Thiết lập AHP và kết quả tính toán</h2>
+            <p class="text-slate-500 mt-2 leading-7">
+              Nhập ma trận so sánh cặp cho các tiêu chí đánh giá để xác định trọng số AHP phục vụ gợi ý điều chỉnh chi tiêu.
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+              <h3 class="text-xl font-bold text-primary-900">1. Ma trận so sánh tiêu chí</h3>
+              <p class="text-sm text-slate-500">Nhập số như 1, 3, 5 hoặc dạng phân số như 1/3, 1/4</p>
+            </div>
+
+            <div class="overflow-x-auto border border-blue-100 rounded-2xl shadow-sm">
+              <table class="min-w-full text-sm">
+                <thead class="bg-gradient-to-r from-primary-700 to-sky-600 text-white">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-semibold min-w-[180px]"></th>
+                    <th class="px-4 py-3 text-center font-semibold min-w-[150px]">Mức độ cần thiết</th>
+                    <th class="px-4 py-3 text-center font-semibold min-w-[170px]">Tác động ngân sách</th>
+                    <th class="px-4 py-3 text-center font-semibold min-w-[170px]">Khả năng cắt giảm</th>
+                    <th class="px-4 py-3 text-center font-semibold min-w-[160px]">Tần suất phát sinh</th>
+                    <th class="px-4 py-3 text-center font-semibold min-w-[150px]">Mức độ linh hoạt</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-blue-100 bg-blue-50">
+                  <tr>
+                    <td class="px-4 py-3 font-semibold bg-white text-primary-800">Mức độ cần thiết</td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="0" data-col="0" value="1.000" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="0" data-col="1" value="3" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="0" data-col="2" value="5" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="0" data-col="3" value="4" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="0" data-col="4" value="6" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 font-semibold bg-white text-primary-800">Tác động ngân sách</td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="1" data-col="0" value="1/3" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="1" data-col="1" value="1.000" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="1" data-col="2" value="3" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="1" data-col="3" value="2" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="1" data-col="4" value="4" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 font-semibold bg-white text-primary-800">Khả năng cắt giảm</td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="2" data-col="0" value="1/5" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="2" data-col="1" value="1/3" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="2" data-col="2" value="1.000" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="2" data-col="3" value="1/2" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="2" data-col="4" value="2" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 font-semibold bg-white text-primary-800">Tần suất phát sinh</td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="3" data-col="0" value="1/4" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="3" data-col="1" value="1/2" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="3" data-col="2" value="2" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="3" data-col="3" value="1.000" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="3" data-col="4" value="3" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                  </tr>
+                  <tr>
+                    <td class="px-4 py-3 font-semibold bg-white text-primary-800">Mức độ linh hoạt</td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="4" data-col="0" value="1/6" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="4" data-col="1" value="1/4" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="4" data-col="2" value="1/2" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="4" data-col="3" value="1/3" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                    <td class="px-4 py-3 text-center"><input data-ahp-input="1" data-row="4" data-col="4" value="1.000" class="w-24 rounded-xl border border-blue-200 px-3 py-2 text-center bg-white" /></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+              <button
+                id="ahpCalculateBtn"
+                type="button"
+                onclick="calculateAHP()"
+                class="inline-flex items-center rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-6 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                Tính toán
+              </button>
+            </div>
+
+            <div id="ahpStatusMessage" class="hidden rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-primary-800 font-medium">
+              Đang chờ tính toán AHP.
+            </div>
+          </div>
+
+          <div class="space-y-5 border border-blue-100 rounded-3xl p-6 bg-gradient-to-br from-blue-50 to-white">
+            <div class="text-center">
+              <h3 class="text-2xl font-bold text-primary-900">Kết quả tính toán tiêu chí</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-lg">
+              <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">Lambda Max</p>
+                <p id="ahpLambdaMax" class="font-bold mt-2 text-primary-800">5.4290</p>
+              </div>
+              <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">CI</p>
+                <p id="ahpCI" class="font-bold mt-2 text-primary-800">0.1073</p>
+              </div>
+              <div class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+                <p class="text-sm text-slate-500">CR</p>
+                <p id="ahpCR" class="font-bold mt-2 text-primary-800">9.5767%</p>
+              </div>
+            </div>
+
+            <div id="ahpConsistencyMessage" class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-primary-800 font-medium">
+              Tỷ số nhất quán CR nhỏ hơn 10%, có thể tiếp tục sử dụng kết quả.
+            </div>
+
+            <div>
+              <h4 class="text-xl font-bold mb-4 text-primary-900">Trọng số các tiêu chí</h4>
+              <ul id="ahpWeightsList" class="space-y-2 text-lg list-disc pl-6">
+                <li><span class="font-semibold">Mức độ cần thiết:</span> 0.4012</li>
+                <li><span class="font-semibold">Tác động ngân sách:</span> 0.2486</li>
+                <li><span class="font-semibold">Khả năng cắt giảm:</span> 0.1764</li>
+                <li><span class="font-semibold">Tần suất phát sinh:</span> 0.1098</li>
+                <li><span class="font-semibold">Mức độ linh hoạt:</span> 0.0640</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+            <button type="button" onclick="showStep(2)" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+              Back
+            </button>
+            <div class="text-sm text-slate-500">Đang ở bước 3</div>
+            <div class="flex gap-3">
+              <button type="button" onclick="showHistory()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+                History
+              </button>
+              <button type="button" onclick="showStep(4)" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <!-- STEP 4 -->
+<section id="step4" class="screen hidden">
+  <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8 space-y-8">
+    <div>
+      <p class="text-sm font-semibold text-primary-600">STEP 4</p>
+      <h2 class="text-3xl font-bold mt-2 text-primary-900">Phân tích danh mục chi tiêu</h2>
+      <p class="text-slate-500 mt-2 leading-7">
+        Kết quả được tạo từ dữ liệu chi tiêu thực tế và trọng số AHP đã tính.
+      </p>
+    </div>
+
+    <div class="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-5">
+      <h3 class="text-lg font-bold mb-3 text-primary-800">Danh mục đang phân tích</h3>
+      <div id="categoryChips" class="flex flex-wrap gap-2">
+        <span class="rounded-full bg-white border border-blue-200 text-primary-700 px-4 py-2 text-sm font-medium">
+          Chưa có dữ liệu
+        </span>
+      </div>
+    </div>
+
+    <div class="space-y-6 border border-blue-100 rounded-3xl p-6 bg-white">
+      <div>
+        <p class="text-sm font-semibold text-primary-600">KẾT QUẢ</p>
+        <h3 class="text-2xl font-bold mt-2 text-primary-900">Bảng đánh giá danh mục</h3>
+        <p id="step4SummaryText" class="text-sm text-slate-500 mt-1">
+          Đang chờ dữ liệu phân tích.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto border border-blue-100 rounded-2xl shadow-sm">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gradient-to-r from-primary-700 to-sky-600 text-white">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold min-w-[180px]">Danh mục</th>
+              <th class="px-4 py-3 text-center font-semibold min-w-[140px]">Tổng chi</th>
+              <th class="px-4 py-3 text-center font-semibold min-w-[140px]">Điểm</th>
+              <th class="px-4 py-3 text-center font-semibold min-w-[140px]">Ưu tiên</th>
+              <th class="px-4 py-3 text-left font-semibold min-w-[180px]">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody id="step4TableBody" class="divide-y divide-blue-100 bg-white">
+            <tr>
+              <td colspan="5" class="px-4 py-6 text-center text-slate-500">
+                Chưa có dữ liệu để phân tích.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+          <h4 class="text-lg font-bold mb-4 text-primary-800">Trọng số AHP</h4>
+          <div class="h-[320px]">
+            <canvas id="criteriaPieChart"></canvas>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
+          <h4 class="text-lg font-bold mb-4 text-primary-800">Điểm ưu tiên theo danh mục</h4>
+          <div class="h-[320px]">
+            <canvas id="priorityBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+        <button type="button" onclick="showStep(3)" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+          Back
+        </button>
+        <div class="text-sm text-slate-500">Đang ở bước 4</div>
+        <div class="flex gap-3">
+          <button type="button" onclick="showHistory()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+            History
+          </button>
+          <button type="button" onclick="showStep(5)" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium hover:from-primary-700 hover:to-sky-600 transition shadow">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <!-- STEP 5 -->
+      <section id="step5" class="screen hidden">
+  <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8 space-y-6">
+    <div>
+      <p class="text-sm font-semibold text-primary-600">STEP 5</p>
+      <h2 class="text-3xl font-bold mt-2 text-primary-900">DSS gợi ý điều chỉnh chi tiêu</h2>
+      <p class="text-slate-500 mt-2">
+        Gợi ý cắt giảm theo dữ liệu chi tiêu đã nhập và trọng số AHP.
+      </p>
+    </div>
+
+    <div id="dssSummaryText" class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-primary-800 font-medium">
+      Đang phân tích DSS...
+    </div>
+
+    <div class="overflow-x-auto border border-blue-100 rounded-2xl shadow-sm">
+      <table class="min-w-full text-sm">
+        <thead class="bg-gradient-to-r from-primary-700 to-sky-600 text-white">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold">Nhóm chi</th>
+            <th class="px-4 py-3 text-left font-semibold">Tổng chi</th>
+            <th class="px-4 py-3 text-left font-semibold">Ưu tiên</th>
+            <th class="px-4 py-3 text-left font-semibold">Điểm</th>
+            <th class="px-4 py-3 text-left font-semibold">Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody id="dssSuggestionTableBody" class="divide-y divide-blue-100 bg-white">
+          <tr>
+            <td colspan="5" class="px-4 py-6 text-center text-slate-500">
+              Đang tải dữ liệu...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+      <button
+        type="button"
+        onclick="showStep(4)"
+        class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+        Back
+      </button>
+
+      <div class="text-sm text-slate-500">Đang ở bước 5</div>
+
+      <button
+        type="button"
+        onclick="showHistory()"
+        class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+        History
+      </button>
+    </div>
+  </div>
+</section>
+
+      <!-- USER HISTORY -->
+      <section id="userHistorySection" class="screen hidden">
+        <div class="bg-white border border-blue-100 shadow-lg rounded-3xl p-8">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-3xl font-bold text-primary-900">Lịch sử phân tích của bạn</h2>
+              <p id="historyUsernameText" class="text-slate-500 mt-1"></p>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="button" onclick="logoutUser()" class="rounded-xl border border-red-200 bg-red-50 px-5 py-3 font-medium text-red-600 hover:bg-red-100 transition">
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto border border-blue-100 rounded-2xl shadow-sm">
+            <table class="min-w-full text-sm">
+              <thead class="bg-blue-50 text-primary-700">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold">Ngày phân tích</th>
+                  <th class="px-4 py-3 text-left font-semibold">Ngân sách</th>
+                  <th class="px-4 py-3 text-left font-semibold">Tổng chi</th>
+                  <th class="px-4 py-3 text-left font-semibold">Nguy cơ</th>
+                  <th class="px-4 py-3 text-left font-semibold">Điểm rủi ro</th>
+                  <th class="px-4 py-3 text-left font-semibold">Khuyến nghị</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody" class="divide-y divide-blue-100 bg-white">
+                <tr>
+                  <td colspan="6" class="px-4 py-6 text-center text-slate-500">
+                    Chưa có lịch sử phân tích.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-8 flex justify-between items-center">
+            <div class="text-sm text-slate-500">Lịch sử chỉ hiển thị khi đã đăng nhập</div>
+            <button type="button" onclick="goBackFromHistory()" class="rounded-xl border border-blue-200 bg-white px-5 py-3 font-medium text-primary-700 hover:bg-blue-50 transition">
+              Back
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-blue-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-2xl font-bold text-primary-900">Đăng nhập để xem lịch sử</h3>
+          <button onclick="closeAuthModal()" class="text-slate-500 hover:text-slate-700 text-xl">&times;</button>
+        </div>
+
+        <p class="text-sm text-slate-500 mb-4">
+          Bạn vẫn có thể dùng web bình thường mà không cần đăng nhập. Chỉ cần đăng nhập khi muốn xem lịch sử phân tích.
+        </p>
+
+        <div class="flex gap-3 mb-4">
+          <button id="loginTabBtn" type="button" onclick="showAuthTab('login')" class="rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-4 py-2 text-white text-sm font-medium">
+            Đăng nhập
+          </button>
+          <button id="registerTabBtn" type="button" onclick="showAuthTab('register')" class="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-primary-700">
+            Đăng ký
+          </button>
+        </div>
+
+        <div id="authMessage" class="hidden rounded-xl px-4 py-3 text-sm mb-4"></div>
+
+        <div id="loginPanel">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-primary-700">Tên đăng nhập</label>
+              <input id="loginUsername" type="text" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-primary-700">Mật khẩu</label>
+              <input id="loginPassword" type="password" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white" />
+            </div>
+            <button type="button" onclick="loginUser()" class="w-full rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium">
+              Đăng nhập
+            </button>
+          </div>
+        </div>
+
+        <div id="registerPanel" class="hidden">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-primary-700">Tên đăng nhập</label>
+              <input id="registerUsername" type="text" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white" />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-primary-700">Mật khẩu</label>
+              <input id="registerPassword" type="password" class="w-full rounded-xl border border-blue-200 px-4 py-3 bg-white" />
+            </div>
+            <button type="button" onclick="registerUser()" class="w-full rounded-xl bg-gradient-to-r from-primary-600 to-sky-500 px-5 py-3 text-white font-medium">
+              Đăng ký
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ai.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  </body>
+</html>
